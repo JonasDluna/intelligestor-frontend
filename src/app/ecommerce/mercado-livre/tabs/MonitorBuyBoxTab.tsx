@@ -2,116 +2,118 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/atoms';
-import { Target, TrendingUp, TrendingDown, RefreshCw, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, RefreshCw, Info } from 'lucide-react';
+import api from '@/lib/api';
 
 interface BuyBoxItem {
-  anuncio: string;
-  sku: string;
-  preco_atual: number;
-  preco_campeao: number;
-  diferenca_percent: number;
-  status_buybox: 'ganhando' | 'perdendo' | 'sem_dados';
-  ultima_atualizacao: string;
   ml_id: string;
+  title: string;
+  my_price: number;
+  champion_price: number | null;
+  difference_percent: number;
+  is_winner: boolean;
+  offers_count: number;
+  updated_at: string;
+  has_catalog: boolean;
 }
 
 export default function MonitorBuyBoxTab() {
   const [items, setItems] = useState<BuyBoxItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<string>('');
-
-  // Mock data para demonstração
-  const mockData: BuyBoxItem[] = [
-    {
-      anuncio: 'Furadeira 500W Profissional',
-      sku: 'SKU-223',
-      preco_atual: 199.90,
-      preco_campeao: 189.99,
-      diferenca_percent: 5.2,
-      status_buybox: 'perdendo',
-      ultima_atualizacao: '5 min atrás',
-      ml_id: 'MLB123456789'
-    },
-    {
-      anuncio: 'Parafusadeira 12V Bivolt',
-      sku: 'SKU-445',
-      preco_atual: 289.90,
-      preco_campeao: 299.90,
-      diferenca_percent: -3.3,
-      status_buybox: 'ganhando',
-      ultima_atualizacao: '2 min atrás',
-      ml_id: 'MLB987654321'
-    }
-  ];
+  const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    // Carregar dados do BuyBox
     loadBuyBoxData();
   }, []);
 
   const loadBuyBoxData = async () => {
-    setIsLoading(true);
     try {
-      // TODO: Fazer chamada real para API
-      // const response = await fetch('/api/ml/buybox');
-      // const data = await response.json();
+      setLoading(true);
       
-      // Por enquanto, usar dados mock
-      setTimeout(() => {
-        setItems(mockData);
-        setLastUpdate(new Date().toLocaleString('pt-BR'));
-        setIsLoading(false);
-      }, 1000);
+      // Primeiro busca itens do catálogo
+      const catalogResponse = await api.mlExtended.catalogItems();
+      
+      if (!catalogResponse.success || !catalogResponse.items) {
+        setItems([]);
+        return;
+      }
+
+      const catalogItems = catalogResponse.items;
+
+      // Para cada item, busca dados de BuyBox
+      const buyboxPromises = catalogItems.map(async (item: any) => {
+        try {
+          const buyboxResponse = await api.mlExtended.buyboxData(item.ml_id);
+          if (buyboxResponse.success && buyboxResponse.data) {
+            return buyboxResponse.data;
+          }
+          return null;
+        } catch (error) {
+          console.error(`Erro ao buscar BuyBox para ${item.ml_id}:`, error);
+          return null;
+        }
+      });
+
+      const buyboxData = await Promise.all(buyboxPromises);
+      const validData = buyboxData.filter(d => d !== null && d.has_catalog);
+      
+      setItems(validData);
     } catch (error) {
       console.error('Erro ao carregar dados BuyBox:', error);
-      setIsLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ganhando':
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium border border-green-200">
-            <CheckCircle2 className="h-4 w-4" />
-            Ganhando
-          </span>
-        );
-      case 'perdendo':
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-50 text-red-700 rounded-lg text-sm font-medium border border-red-200">
-            <XCircle className="h-4 w-4" />
-            Perdendo
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium border border-gray-200">
-            <AlertTriangle className="h-4 w-4" />
-            Sem dados
-          </span>
-        );
-    }
+  const handleRefresh = async () => {
+    setUpdating(true);
+    await loadBuyBoxData();
+    setUpdating(false);
   };
 
-  const stats = {
-    total: items.length,
-    ganhando: items.filter(i => i.status_buybox === 'ganhando').length,
-    perdendo: items.filter(i => i.status_buybox === 'perdendo').length
+  const getStatusBadge = (item: BuyBoxItem) => {
+    if (!item.champion_price) {
+      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Sem dados</span>;
+    }
+    
+    if (item.is_winner) {
+      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">🏆 Ganhando</span>;
+    }
+    
+    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">📉 Perdendo</span>;
   };
+
+  const formatTimeSince = (isoDate: string) => {
+    const date = new Date(isoDate);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Agora';
+    if (diffMins < 60) return `${diffMins} min atrás`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h atrás`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d atrás`;
+  };
+
+  // Estatísticas
+  const totalMonitorados = items.length;
+  const ganhandoBuyBox = items.filter(i => i.is_winner).length;
+  const perdendoBuyBox = items.filter(i => !i.is_winner && i.champion_price).length;
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700 mb-1">Total Monitorados</p>
-                <p className="text-4xl font-bold text-blue-900">{stats.total}</p>
+                <p className="text-sm font-medium text-blue-600 mb-1">Total Monitorados</p>
+                <p className="text-3xl font-bold text-blue-900">{totalMonitorados}</p>
               </div>
-              <Target className="h-12 w-12 text-blue-600" />
+              <Info className="h-8 w-8 text-blue-400" />
             </div>
           </CardContent>
         </Card>
@@ -120,10 +122,10 @@ export default function MonitorBuyBoxTab() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 mb-1">Ganhando BuyBox</p>
-                <p className="text-4xl font-bold text-green-900">{stats.ganhando}</p>
+                <p className="text-sm font-medium text-green-600 mb-1">Ganhando BuyBox</p>
+                <p className="text-3xl font-bold text-green-900">{ganhandoBuyBox}</p>
               </div>
-              <TrendingUp className="h-12 w-12 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-green-400" />
             </div>
           </CardContent>
         </Card>
@@ -132,114 +134,90 @@ export default function MonitorBuyBoxTab() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-700 mb-1">Perdendo BuyBox</p>
-                <p className="text-4xl font-bold text-red-900">{stats.perdendo}</p>
+                <p className="text-sm font-medium text-red-600 mb-1">Perdendo BuyBox</p>
+                <p className="text-3xl font-bold text-red-900">{perdendoBuyBox}</p>
               </div>
-              <TrendingDown className="h-12 w-12 text-red-600" />
+              <TrendingDown className="h-8 w-8 text-red-400" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* BuyBox Table */}
+      {/* Botão Atualizar */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleRefresh}
+          disabled={updating}
+          className="flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <RefreshCw className={`h-5 w-5 ${updating ? 'animate-spin' : ''}`} />
+          {updating ? 'Atualizando...' : 'Atualizar Dados'}
+        </button>
+      </div>
+
+      {/* Tabela BuyBox */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Monitor de BuyBox em Catálogo</CardTitle>
-            <div className="flex items-center gap-3">
-              {lastUpdate && (
-                <span className="text-sm text-gray-500">
-                  Atualizado: {lastUpdate}
-                </span>
-              )}
-              <button
-                onClick={loadBuyBoxData}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Atualizando...' : 'Atualizar'}
-              </button>
-            </div>
-          </div>
+          <CardTitle>Monitor BuyBox - Catálogo ML</CardTitle>
         </CardHeader>
         <CardContent>
-          {items.length === 0 && !isLoading ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <RefreshCw className="h-8 w-8 animate-spin text-yellow-500" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="text-center py-12">
-              <Target className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <TrendingUp className="h-16 w-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum item no catálogo</h3>
               <p className="text-gray-600 mb-4">
-                Seus anúncios que participam do catálogo do Mercado Livre aparecerão aqui
+                Sincronize seus anúncios na aba &quot;Meus Anúncios&quot; primeiro
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto text-left">
-                <h4 className="font-semibold text-blue-900 mb-2">📖 Sobre o BuyBox</h4>
-                <p className="text-sm text-blue-800 mb-2">
-                  O BuyBox é a posição destacada na página do produto no Mercado Livre. 
-                  Quem ganha o BuyBox tem maior visibilidade e mais vendas.
-                </p>
-                <p className="text-sm text-blue-800">
-                  Fatores importantes: preço competitivo, reputação, tempo de entrega e estoque disponível.
-                </p>
-              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b-2 border-gray-200">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Anúncio</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">SKU</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Preço Atual</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Preço Campeão</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Diferença</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Status BuyBox</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Atualização</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Anúncio</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Preço Atual</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Preço Campeão</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Diferença</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status BuyBox</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Ofertas</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Atualização</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {items.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  {items.map((item) => (
+                    <tr key={item.ml_id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4">
-                        <div>
-                          <p className="font-medium text-gray-900">{item.anuncio}</p>
-                          <p className="text-xs text-gray-500">{item.ml_id}</p>
+                        <div className="max-w-xs">
+                          <p className="font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500 font-mono">{item.ml_id}</p>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm font-mono">
-                          {item.sku}
+                        <span className="text-sm font-semibold text-gray-900">
+                          R$ {item.my_price.toFixed(2)}
                         </span>
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        <span className="font-semibold text-gray-900">
-                          R$ {item.preco_atual.toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        <span className="font-semibold text-green-600">
-                          R$ {item.preco_campeao.toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        <span className={`inline-flex items-center gap-1 font-semibold ${
-                          item.diferenca_percent > 0 ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {item.diferenca_percent > 0 ? (
-                            <TrendingUp className="h-4 w-4" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4" />
-                          )}
-                          {item.diferenca_percent > 0 ? '+' : ''}{item.diferenca_percent.toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        {getStatusBadge(item.status_buybox)}
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-sm text-gray-600">
-                          {item.ultima_atualizacao}
+                        <span className="text-sm font-semibold text-blue-600">
+                          {item.champion_price ? `R$ ${item.champion_price.toFixed(2)}` : '-'}
                         </span>
                       </td>
+                      <td className="px-4 py-4">
+                        {item.champion_price ? (
+                          <span className={`text-sm font-semibold ${item.difference_percent > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {item.difference_percent > 0 ? '+' : ''}{item.difference_percent.toFixed(1)}%
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">{getStatusBadge(item)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{item.offers_count}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{formatTimeSince(item.updated_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -250,18 +228,15 @@ export default function MonitorBuyBoxTab() {
       </Card>
 
       {/* Info Box */}
-      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="bg-yellow-100 p-3 rounded-xl">
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 mb-2">💡 Dica de Otimização</h3>
-              <p className="text-gray-700 text-sm">
-                Para ganhar o BuyBox, mantenha seu preço competitivo (próximo ou abaixo do preço campeão), 
-                boa reputação como vendedor, e estoque disponível. Atualize seus preços regularmente ou use 
-                a funcionalidade de <strong>ajuste automático com IA</strong>.
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900">
+              <p className="font-semibold mb-1">💡 Dica de otimização BuyBox:</p>
+              <p>
+                Para ganhar o BuyBox, seu preço deve ser igual ou menor que o campeão atual. 
+                Considere também outros fatores como reputação, frete e tempo de entrega.
               </p>
             </div>
           </div>
