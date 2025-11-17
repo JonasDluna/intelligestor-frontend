@@ -12,23 +12,41 @@ export default function MercadoLivrePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkMLConnection();
-  }, []);
+    // Só verificar se o usuário estiver logado
+    if (user) {
+      checkMLConnection();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const checkMLConnection = async () => {
     try {
+      const token = localStorage.getItem('auth_token');
+      
+      if (!token) {
+        console.log('Token não encontrado no localStorage');
+        setIsConnected(false);
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ml/status`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
       if (response.ok) {
         const data = await response.json();
         setIsConnected(data.connected);
+      } else if (response.status === 401) {
+        console.log('Token inválido ou expirado');
+        setIsConnected(false);
       }
     } catch (error) {
       console.error('Erro ao verificar conexão ML:', error);
+      setIsConnected(false);
     } finally {
       setIsLoading(false);
     }
