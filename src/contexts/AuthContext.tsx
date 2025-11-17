@@ -48,7 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const login = async (email: string, _password: string) => {
     try {
       // TODO: Implement actual login API call
       // For now, mock authentication

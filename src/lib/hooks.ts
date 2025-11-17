@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produtosApi, estoqueApi, vendasApi, clientesApi, mercadoLivreApi, iaApi } from '@/lib/api';
-import type { Produto, Venda, Cliente, Anuncio, EstatisticasVendas } from '@/types';
+import type { Produto, AnuncioCreateRequest, AnuncioUpdateRequest, DescricaoProdutoRequest } from '@/types';
 
 // ============================================
 // PRODUTOS HOOKS
@@ -25,7 +25,7 @@ export function useCriarProduto() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (produtoData: unknown) => produtosApi.create(produtoData as any),
+    mutationFn: produtosApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
     },
@@ -155,7 +155,7 @@ export function useCriarAnuncio() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (anuncioData: unknown) =>
+    mutationFn: (anuncioData: AnuncioCreateRequest) =>
       mercadoLivreApi.createAnuncio(anuncioData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['anuncios'] });
@@ -167,7 +167,7 @@ export function useAtualizarAnuncio() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ anuncioId, anuncioData }: { anuncioId: string; anuncioData: unknown }) =>
+    mutationFn: ({ anuncioId, anuncioData }: { anuncioId: string; anuncioData: AnuncioUpdateRequest }) =>
       mercadoLivreApi.updateAnuncio(anuncioId, anuncioData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['anuncios'] });
@@ -195,6 +195,6 @@ export function useOtimizarPreco() {
 
 export function useGerarDescricao() {
   return useMutation({
-    mutationFn: (produtoData: unknown) => iaApi.gerarDescricao(produtoData),
+    mutationFn: (produtoData: DescricaoProdutoRequest) => iaApi.gerarDescricao(produtoData),
   });
 }

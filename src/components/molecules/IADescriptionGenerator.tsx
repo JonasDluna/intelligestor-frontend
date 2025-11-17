@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, X } from 'lucide-react';
-import { Button, Input, Spinner } from '@/components/atoms';
+import { Button, Spinner } from '@/components/atoms';
 import { useGerarDescricao } from '@/lib/hooks';
 
 interface IADescriptionGeneratorProps {
@@ -26,17 +26,16 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
   const handleGenerate = async () => {
     try {
       const result = await gerarDescricao.mutateAsync({
-        produto_nome: produtoNome,
+        titulo: produtoNome,
         categoria,
-        caracteristicas,
-        prompt_adicional: prompt || undefined,
+        caracteristicas: caracteristicas.join(', '),
       });
 
       if (result.data?.descricao) {
         setShowResult(true);
       }
     } catch (error) {
-      console.error('Erro ao gerar descriÃƒÂ§ÃƒÂ£o:', error);
+      console.error('Erro ao gerar descrição:', error);
     }
   };
 
