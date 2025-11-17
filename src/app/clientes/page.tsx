@@ -1,5 +1,5 @@
 'use client';
-import AppLayout from '@/components/templates/DokotaLayout';
+import AppLayout from '@/components/templates/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/atoms';
 import { Users, Plus, UserPlus, TrendingUp } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import AppLayout from '@/components/templates/DokotaLayout';
+import AppLayout from '@/components/templates/AppLayout';
 import { DollarSign, ShoppingBag, Users, TrendingUp, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function DashboardPage() {

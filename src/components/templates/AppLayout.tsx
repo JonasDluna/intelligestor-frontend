@@ -121,6 +121,3 @@ export default function AppLayout({ children }: LayoutProps) {
     </div>
   );
 }
-
-// Export também como DokotaLayout para compatibilidade
-export { AppLayout as DokotaLayout };

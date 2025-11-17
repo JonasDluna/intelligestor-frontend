@@ -1,6 +1,6 @@
 'use client';
 
-import AppLayout from '@/components/templates/DokotaLayout';
+import AppLayout from '@/components/templates/AppLayout';
 import { useState } from 'react';
 import { Search, Plus, Filter, Download, Edit, Trash2 } from 'lucide-react';
 

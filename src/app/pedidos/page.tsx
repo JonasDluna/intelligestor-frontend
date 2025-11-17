@@ -1,6 +1,6 @@
 'use client';
 
-import DokotaLayout from '@/components/templates/DokotaLayout';
+import AppLayout from '@/components/templates/AppLayout';
 import { useState } from 'react';
 import { Search, X, List, Grid, Filter, Download } from 'lucide-react';
 
@@ -142,7 +142,7 @@ export default function PedidosPage() {
   };
 
   return (
-    <DokotaLayout>
+    <AppLayout>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         {/* Tabs */}
         <div className="border-b border-gray-200 px-6">
@@ -306,6 +306,6 @@ export default function PedidosPage() {
           </table>
         </div>
       </div>
-    </DokotaLayout>
+    </AppLayout>
   );
 }
