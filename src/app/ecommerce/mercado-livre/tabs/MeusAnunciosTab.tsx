@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/atoms';
 import { Package, Search, Filter, RefreshCw, ExternalLink } from 'lucide-react';
 import api from '@/lib/api';
 import { getFirstSecureImage } from '@/utils/imageUtils';
+import { formatCurrency } from '@/utils/currencyUtils';
 
 interface Anuncio {
   ml_id: string;
@@ -173,7 +174,7 @@ export default function MeusAnunciosTab() {
                       </td>
                       <td className="px-4 py-4">
                         <span className="text-sm font-semibold text-gray-900">
-                          R$ {parseFloat(anuncio.price).toFixed(2)}
+                          {formatCurrency(anuncio.price)}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-600">{anuncio.available_quantity}</td>
