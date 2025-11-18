@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/atoms';
 import { Package, Search, Filter, RefreshCw, ExternalLink } from 'lucide-react';
 import api from '@/lib/api';
+import { getFirstSecureImage } from '@/utils/imageUtils';
 
 interface Anuncio {
   ml_id: string;
@@ -154,11 +155,12 @@ export default function MeusAnunciosTab() {
                     <tr key={anuncio.ml_id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          {anuncio.pictures && anuncio.pictures.length > 0 && (
+                          {getFirstSecureImage(anuncio.pictures) && (
                             <img
-                              src={anuncio.pictures[0]}
+                              src={getFirstSecureImage(anuncio.pictures)!}
                               alt={anuncio.title}
                               className="w-12 h-12 object-cover rounded border"
+                              loading="lazy"
                             />
                           )}
                           <div className="max-w-xs">
