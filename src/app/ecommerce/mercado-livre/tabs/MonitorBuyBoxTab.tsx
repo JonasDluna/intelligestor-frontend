@@ -82,7 +82,7 @@ export default function MonitorBuyBoxTab({ userId }: MonitorBuyBoxTabProps) {
       
       console.log('[DEBUG] Response catalogItems:', catalogResponse.data);
       
-      if (!catalogResponse?.data?.success || !catalogResponse?.data?.catalog_items) {
+      if (!catalogResponse?.data?.catalog_items || catalogResponse.data.status !== 'success') {
         console.warn('[DEBUG] Catálogo vazio ou inválido:', catalogResponse.data);
         setItems([]);
         return;
@@ -97,7 +97,7 @@ export default function MonitorBuyBoxTab({ userId }: MonitorBuyBoxTabProps) {
             params: { user_id: userId }
           });
           
-          if (buyboxResponse?.data?.success && buyboxResponse?.data?.buybox_data) {
+          if (buyboxResponse?.data?.buybox_data && buyboxResponse.data.status === 'success') {
             const data = buyboxResponse.data.buybox_data;
             
             // Mapear novos campos para compatibilidade
