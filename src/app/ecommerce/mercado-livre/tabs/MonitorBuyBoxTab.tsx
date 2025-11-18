@@ -11,7 +11,7 @@ interface BuyBoxItem {
   title: string;
   my_price: number;
   champion_price: number | null;
-  difference_percent: number;
+  difference_percent: number | null;
   is_winner: boolean;
   offers_count: number;
   updated_at: string;
@@ -48,7 +48,17 @@ export default function MonitorBuyBoxTab() {
         try {
           const buyboxResponse = await api.mlExtended.buyboxData(item.ml_id);
           if (buyboxResponse?.success && buyboxResponse?.data) {
-            return buyboxResponse.data;
+            // Validar e normalizar dados
+            const data = buyboxResponse.data;
+            return {
+              ...data,
+              my_price: Number(data.my_price) || 0,
+              champion_price: data.champion_price ? Number(data.champion_price) : null,
+              difference_percent: typeof data.difference_percent === 'number' ? data.difference_percent : null,
+              offers_count: Number(data.offers_count) || 0,
+              is_winner: Boolean(data.is_winner),
+              has_catalog: Boolean(data.has_catalog)
+            };
           }
           return null;
         } catch (error) {
@@ -201,7 +211,7 @@ export default function MonitorBuyBoxTab() {
                       </td>
                       <td className="px-4 py-4">
                         <span className="text-sm font-semibold text-gray-900">
-                          {formatCurrency(item.my_price)}
+                          {formatCurrency(item.my_price || 0)}
                         </span>
                       </td>
                       <td className="px-4 py-4">
@@ -210,9 +220,9 @@ export default function MonitorBuyBoxTab() {
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        {item.champion_price ? (
+                        {item.champion_price && typeof item.difference_percent === 'number' ? (
                           <span className={`text-sm font-semibold ${item.difference_percent > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            {item.difference_percent > 0 ? '+' : ''}{(item.difference_percent || 0).toFixed(1)}%
+                            {item.difference_percent > 0 ? '+' : ''}{item.difference_percent.toFixed(1)}%
                           </span>
                         ) : (
                           <span className="text-sm text-gray-400">-</span>
