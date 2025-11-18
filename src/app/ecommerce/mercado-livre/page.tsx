@@ -156,7 +156,7 @@ export default function MercadoLivrePage() {
               <div className="flex flex-col items-end gap-2">
                 {backendVersion && (
                   <div className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-mono ${
-                    backendVersion === '217dae7' 
+                    backendVersion === '9b23f08' 
                       ? 'bg-green-50 text-green-700 border border-green-200' 
                       : 'bg-orange-50 text-orange-700 border border-orange-200'
                   }`}>
