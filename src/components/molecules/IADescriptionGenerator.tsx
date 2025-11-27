@@ -88,7 +88,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
               <div>
                 <span className="text-sm font-medium text-gray-700">Características:</span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {caracteristicas.map((car, index) => (
+                  {caracteristicas.map((car: string, index: number) => (
                     <span
                       key={index}
                       className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
