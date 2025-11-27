@@ -41,9 +41,13 @@ export default function MLCallbackPage() {
         setTimeout(() => {
           window.location.href = "/ecommerce";
         }, 2000);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setStatus("error");
-        setMessage(`Erro inesperado: ${e?.message || e}`);
+        if (e instanceof Error) {
+          setMessage(`Erro inesperado: ${e.message}`);
+        } else {
+          setMessage(`Erro inesperado: ${String(e)}`);
+        }
       }
     }
     run();
