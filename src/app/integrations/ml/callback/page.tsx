@@ -37,8 +37,10 @@ export default function MLCallbackPage() {
         const data = await resp.json();
         setStatus("success");
         setMessage("Conta Mercado Livre conectada com sucesso!");
-        // Opcional: redirecionar após alguns segundos
-        // setTimeout(() => window.location.href = "/ecommerce", 2500);
+        // Redirecionar após alguns segundos para a área principal
+        setTimeout(() => {
+          window.location.href = "/ecommerce";
+        }, 2000);
       } catch (e: any) {
         setStatus("error");
         setMessage(`Erro inesperado: ${e?.message || e}`);
