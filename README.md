@@ -68,3 +68,9 @@ O fluxo oficial é via Vercel (`vercel.json`). Após o merge na branch principal
 3. Faça o deploy com `vercel` ou via pipeline automático do GitHub.
 
 Consulte `DEPLOY_VERCEL.md` para detalhes específicos.
+
+### Fluxo OAuth Mercado Livre
+
+- Callback visual: `src/app/integrations/ml/callback/page.tsx`
+- A página lê `code` e `state` da URL, chama o backend em `/integrations/ml/callback` e exibe o status (Conectado/Erro)
+- Configure `NEXT_PUBLIC_BACKEND_URL` (ex.: `https://intelligestor-backend.onrender.com`) para ambientes locais/preview
