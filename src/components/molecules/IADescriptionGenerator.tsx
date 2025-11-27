@@ -56,7 +56,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
               <Sparkles className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Gerador de DescriÃƒÂ§ÃƒÂµes IA</h2>
+              <h2 className="text-xl font-bold text-white">Gerador de Descrições IA</h2>
               <p className="text-sm text-purple-100">Powered by GPT-4</p>
             </div>
           </div>
@@ -72,7 +72,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* InformaÃƒÂ§ÃƒÂµes do Produto */}
+          {/* Informações do Produto */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <div>
               <span className="text-sm font-medium text-gray-700">Produto:</span>
@@ -86,7 +86,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
             )}
             {caracteristicas.length > 0 && (
               <div>
-                <span className="text-sm font-medium text-gray-700">CaracterÃƒÂ­sticas:</span>
+                <span className="text-sm font-medium text-gray-700">Características:</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {caracteristicas.map((car, index) => (
                     <span
@@ -104,7 +104,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
           {/* Prompt Adicional */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              InstruÃƒÂ§ÃƒÂµes Adicionais (Opcional)
+              Instruções Adicionais (Opcional)
             </label>
             <textarea
               value={prompt}
@@ -115,7 +115,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
             />
           </div>
 
-          {/* BotÃƒÂ£o Gerar */}
+          {/* Botão Gerar */}
           {!showResult && (
             <Button
               onClick={handleGenerate}
@@ -124,7 +124,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
               icon={gerarDescricao.isPending ? <Spinner size="sm" /> : <Sparkles />}
               className="w-full"
             >
-              {gerarDescricao.isPending ? 'Gerando descriÃƒÂ§ÃƒÂ£o...' : 'Gerar DescriÃƒÂ§ÃƒÂ£o com IA'}
+              {gerarDescricao.isPending ? 'Gerando descrição...' : 'Gerar Descrição com IA'}
             </Button>
           )}
 
@@ -134,7 +134,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-purple-600" />
-                  DescriÃƒÂ§ÃƒÂ£o Gerada
+                  Descrição Gerada
                 </h3>
                 <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
                   <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -143,7 +143,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
                 </div>
               </div>
 
-              {/* SugestÃƒÂµes de SEO */}
+              {/* Sugestões de SEO */}
               {gerarDescricao.data.data.sugestoes_seo && gerarDescricao.data.data.sugestoes_seo.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-2">
@@ -172,14 +172,14 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
                 </span>
               </div>
 
-              {/* AÃƒÂ§ÃƒÂµes */}
+              {/* Ações */}
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <Button
                   onClick={handleUseDescription}
                   variant="primary"
                   className="flex-1"
                 >
-                  Usar esta DescriÃƒÂ§ÃƒÂ£o
+                  Usar esta Descrição
                 </Button>
                 <Button
                   onClick={() => {
@@ -198,7 +198,7 @@ export const IADescriptionGenerator: React.FC<IADescriptionGeneratorProps> = ({
           {/* Erro */}
           {gerarDescricao.isError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm font-semibold text-red-800">Erro ao gerar descriÃƒÂ§ÃƒÂ£o</p>
+              <p className="text-sm font-semibold text-red-800">Erro ao gerar descrição</p>
               <p className="text-xs text-red-600 mt-1">
                 {gerarDescricao.error instanceof Error
                   ? gerarDescricao.error.message
